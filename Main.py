@@ -5,16 +5,20 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
 import numpy as np
+import time
+
 
 
 
 LEFT_EYE =[ 362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385,384, 398 ]
 RIGHT_EYE=[ 33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161 , 246 ]  
 
-#this variable is used to adjust the eye closed threshold, higher number is more sensitive, lower number is less sensitive
+#these variables are used to adjust the eye closed threshold, higher number is more sensitive, lower number is less sensitive
 eyeDistcheck = 10
 headAnglecheck = 90
 irisDistcheck = 8
+
+
 
 
 #the following code is extracted from
@@ -153,9 +157,23 @@ def distanceCalculator(point1, point2):
 
 
 
+def calculate_fps(start_time, frame_count, image):
+    end_time = time.time()-start_time
+    fps = frame_count/end_time
+    fps_text = "FPS: {:.2f}".format(fps)
+    cv2.putText(image, fps_text, (10, 125), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+#main function here:
 # For webcam input:
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 cap = cv2.VideoCapture(0)
+
+
+fps = 0
+frame_count =0
+fps_start_time = time.time()
+
+
 with mp_face_mesh.FaceMesh(
     max_num_faces=1,
     refine_landmarks=True,
@@ -163,6 +181,9 @@ with mp_face_mesh.FaceMesh(
     min_tracking_confidence=0.5) as face_mesh:
   while cap.isOpened():
     success, image = cap.read()
+    #increasing the frame counter by 1 as the camera is running
+    frame_count += 1
+
     if not success:
       print("Ignoring empty camera frame.")
       # If loading a video, use 'break' instead of 'continue'.
@@ -194,6 +215,7 @@ with mp_face_mesh.FaceMesh(
       eyesClosed(image, mesh_points)
       headPitch(image, mesh_points)
       eyeIris(image, mesh_points)
+      calculate_fps(fps_start_time, frame_count, image)
         
       #eyeIris(image,mesh_points)
     # Flip the image horizontally for a selfie-view display.
