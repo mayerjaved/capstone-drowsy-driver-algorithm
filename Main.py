@@ -1,9 +1,6 @@
 import cv2
 import mediapipe as mp
 import math
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_face_mesh = mp.solutions.face_mesh
 import numpy as np
 import time
 
@@ -13,17 +10,11 @@ from facelandmarks import eyesClosed
 from facelandmarks import headPitch
 from facelandmarks import eyeIris
 
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
+mp_face_mesh = mp.solutions.face_mesh
 
-
-LEFT_EYE =[ 362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385,384, 398 ]
-RIGHT_EYE=[ 33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161 , 246 ]  
-
-
-
-
-
-
-
+#function to calculate frames per second
 def calculate_fps(start_time, frame_count, image):
     end_time = time.time()-start_time
     fps = frame_count/end_time
@@ -35,11 +26,9 @@ def calculate_fps(start_time, frame_count, image):
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 cap = cv2.VideoCapture(0)
 
-
 fps = 0
 frame_count =0
 fps_start_time = time.time()
-
 
 with mp_face_mesh.FaceMesh(
     max_num_faces=1,
