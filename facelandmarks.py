@@ -11,7 +11,8 @@ import numpy as np
 #these variables are used to adjust the eye closed threshold, higher number is more sensitive, lower number is less sensitive
 eyeDistcheck = 10
 headAnglecheck = 90
-irisDistcheck = 8
+irisDistcheck = 7
+irisDistcheckLR = 11
 
 #the following code is extracted from
 #https://www.samproell.io/posts/yarppg/yarppg-face-detection-with-mediapipe/
@@ -97,7 +98,6 @@ def headPitch(image, mesh_points):
   angleB = round(math.degrees(math.acos(angleB)) , 1)
   angleC = round(math.degrees(math.acos(angleC)) , 1)
 
-
   
   if angleC < headAnglecheck and (abs(angleA - angleB) < 40):
     message = "Angle: drowsy "
@@ -114,13 +114,17 @@ def headPitch(image, mesh_points):
 
 def eyeIris(image,mesh_points):
   
+  rightIrisMid = mesh_points[468]
+  rightIrisLeft = mesh_points[471]
+  rightIrisRight = mesh_points[469]
+
   rightTopRight = mesh_points[157]
   rightTopRight1 = mesh_points[158]
   rightTopLeft = mesh_points[160]
   rightTopLeft1 = mesh_points[161]
 
-  rightRight = mesh_points[133]
-  rightLeft = mesh_points[33]
+  rightRight = mesh_points[173] #or 133
+  rightLeft = mesh_points[33] #or 130
   rightBottom = mesh_points[145]
   rightTop = mesh_points[159]
 
@@ -129,25 +133,38 @@ def eyeIris(image,mesh_points):
   rightBottomRight = mesh_points[153]
   rightBottomRight = mesh_points[154]
 
-  rightIrisMid = mesh_points[468]
-  rightIrisLeft = mesh_points[471]
-  rightIrisRight = mesh_points[469]
+  leftIrisMid = mesh_points[473]
+  leftIrisLeft = mesh_points[476]
+  leftIrisRight = mesh_points[474]
 
-  leftRight = mesh_points[263]
-  leftLeft = mesh_points[398]
-  #leftBottom = mesh_points[]
-  leftTop = mesh_points[159]
-
-
+  leftRight = mesh_points[466] #466 or 263
+  leftLeft = mesh_points[398] #or 414
+  leftBottom = mesh_points[374]
+  leftTop = mesh_points[386]
 
 
-  if distanceCalculator(rightIrisMid,rightBottom) < irisDistcheck:
+  #we have a few line drawings for testing to make sure the right points from the 
+  #top
+  #cv2.line(image, rightIrisMid, rightTop, (0, 255, 0), thickness=2)
+  #cv2.line(image, leftIrisMid, leftTop, (0, 255, 0), thickness=2)
+  #bottom
+  #cv2.line(image, leftIrisMid, leftBottom, (0, 255, 0), thickness=2)
+  #cv2.line(image, rightIrisMid, rightBottom, (0, 255, 0), thickness=2)
+  #left
+  #cv2.line(image, rightIrisLeft, rightLeft, (0, 255, 0), thickness=2)
+  #cv2.line(image, leftIrisLeft, leftLeft, (0, 255, 0), thickness=2)
+  #right
+  #cv2.line(image, leftIrisRight, leftRight, (0, 255, 0), thickness=2)
+  #cv2.line(image, rightIrisRight, rightRight, (0, 255, 0), thickness=2)
+ 
+
+  if distanceCalculator(rightIrisMid,rightBottom) < irisDistcheck and distanceCalculator(leftIrisMid, leftBottom) < irisDistcheck:
     message1 = "looking down"
-  elif distanceCalculator(rightIrisLeft, rightLeft) < irisDistcheck:
+  elif distanceCalculator(rightIrisLeft, rightLeft) < irisDistcheckLR and distanceCalculator(leftIrisLeft, leftLeft) < irisDistcheckLR:
     message1 = "looking left"
-  elif distanceCalculator(rightIrisRight, rightRight) < irisDistcheck:
-    message1 = "looking right"
-  elif distanceCalculator(rightIrisMid, rightTop) < irisDistcheck:
+  elif distanceCalculator(rightIrisRight, rightRight) < irisDistcheckLR and distanceCalculator(leftIrisRight, leftRight) < irisDistcheckLR:
+    message1 = "looking right" 
+  elif distanceCalculator(rightIrisMid, rightTop) < irisDistcheck and distanceCalculator(leftIrisMid, leftTop) < irisDistcheck:
     message1 = "looking up"
   else:
     message1 = "looking straight"
