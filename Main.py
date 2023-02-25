@@ -3,14 +3,13 @@ import mediapipe as mp
 import math
 import numpy as np
 import time
-import threading
+import multiprocessing
 from playsound import playsound
 
 
 from facelandmarks import get_facemesh_coords
 from facelandmarks import printMesh
 from facelandmarks import eyesClosed
-from facelandmarks import headPitch
 from facelandmarks import eyeIris
 
 
@@ -71,12 +70,7 @@ with mp_face_mesh.FaceMesh(
 
       #gathers the face mesh points in the form of a tuple array
       mesh_points = get_facemesh_coords(image, face_landmarks)
-
-      #prints all the landmarks including points numbered
-      #printMesh(image, mesh_points)
-
-      status = eyesClosed(image, mesh_points)
-      headPitch(image, mesh_points, status)
+      eyesClosed(image, mesh_points)
       eyeIris(image, mesh_points)
       calculate_fps(fps_start_time, frame_count, image)
         

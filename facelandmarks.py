@@ -71,19 +71,9 @@ def eyesClosed(image, mesh_points):
     status = False
     message = "Eyes: open"    
   cv2.putText(image, message, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-  return status
 
 
-
-
-
-
-
-
-
-#this function finds the angle between the nose and the 2 eyes and determines the head pitch angle accordingly
-def headPitch(image, mesh_points, status):
-
+#this part of the function finds the angle between the nose and the 2 eyes and determines the head pitch angle accordingly
   nosepoint = mesh_points[4]
   rightEyeRight =  mesh_points[446]
   leftEyeLeft = mesh_points[130]
@@ -123,8 +113,6 @@ def headPitch(image, mesh_points, status):
 
 #this function will estimate the position of the user's iris position to determine wether they are
 #looking stright ahead or no
-
-
 def eyeIris(image,mesh_points):
   
   rightIrisMid = mesh_points[468]
@@ -187,16 +175,14 @@ def eyeIris(image,mesh_points):
   cv2.putText(image, message1, (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
 
-
-
 #this function takes the x and y cordinates of 2 points and calculates the distance between them
 def distanceCalculator(point1, point2):
   return ((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2) ** 0.5
 
 
+#this function is used to play a warning tone in a different thread
 def play_sound():   
-
 #we use playsound in a in a different tread, as using other methods to play sound results in the function making the program wait while the sound finished playing causing a lag in the video
 #Start playing the sound in a new thread
-        sound_thread = threading.Thread(target=playsound, args=("retro.wav",), daemon=True)
-        sound_thread.start()
+    sound_thread = threading.Thread(target=playsound, args=("retro.wav",), daemon=True)
+    sound_thread.start()
