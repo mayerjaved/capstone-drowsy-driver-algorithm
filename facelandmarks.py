@@ -195,5 +195,8 @@ def distanceCalculator(point1, point2):
 
 
 def play_sound():   
-        sound_thread = threading.Thread(target=playsound, args=("cyber-alarms.mp3",), daemon=True)
+
+#we use playsound in a in a different tread, as using other methods to play sound results in the function making the program wait while the sound finished playing causing a lag in the video
+#Start playing the sound in a new thread
+        sound_thread = threading.Thread(target=playsound, args=("retro.wav",), daemon=True)
         sound_thread.start()
