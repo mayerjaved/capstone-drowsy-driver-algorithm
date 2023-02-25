@@ -5,7 +5,10 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
 import numpy as np
- 
+from playsound import playsound
+import threading
+import time
+
 
 
 #these variables are used to adjust the eye closed threshold, higher number is more sensitive, lower number is less sensitive
@@ -13,13 +16,15 @@ eyeDistcheck = 10
 headAnglecheck = 90
 irisDistcheck = 7
 irisDistcheckLR = 11
+DrowsyDriver = False
+sound_playing = False
 
 #the following code is extracted from
 #https://www.samproell.io/posts/yarppg/yarppg-face-detection-with-mediapipe/
 #the following function takes the captured face mesh landmark coordinates and 
 #turns them into a list of tuples representing the (x,y) positions on the image
 def get_facemesh_coords(img, landmark_list):
-    """Extract FaceMesh landmark coordinates into 468x3 NumPy array.
+    """Extract FaceMesh landmark coordinates into 468x2 NumPy array.
     """
     h, w = img.shape[:2]  # grab width and height from image
     xy = [(lm.x, lm.y) for lm in landmark_list.landmark]    
@@ -47,6 +52,8 @@ def printMesh(image, mesh_points):
 #this function measures the distance between the top of the eye lid and the bottom of the 
 # eye lid and determines if the eyes are closed 
 def eyesClosed(image, mesh_points):
+  #status is a bool variable which will keep track of if the eyes are open or close and then the funtion returns this bool variable for other functions to know if the eyes are closed or not
+  status = False
   rightTop = mesh_points[159]
   rightBottom = mesh_points[145]
   distRight = distanceCalculator(rightTop,rightBottom)
@@ -57,11 +64,14 @@ def eyesClosed(image, mesh_points):
 
   distRatio = (distRight + distLeft)/2
 
-  if (distRatio < eyeDistcheck):
+  if (distRatio < eyeDistcheck): 
+    status = True
     message = "Eyes: closed"
   else:
+    status = False
     message = "Eyes: open"    
   cv2.putText(image, message, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+  return status
 
 
 
@@ -72,7 +82,7 @@ def eyesClosed(image, mesh_points):
 
 
 #this function finds the angle between the nose and the 2 eyes and determines the head pitch angle accordingly
-def headPitch(image, mesh_points):
+def headPitch(image, mesh_points, status):
 
   nosepoint = mesh_points[4]
   rightEyeRight =  mesh_points[446]
@@ -101,6 +111,9 @@ def headPitch(image, mesh_points):
   
   if angleC < headAnglecheck and (abs(angleA - angleB) < 40):
     message = "Angle: drowsy "
+    if status:
+       play_sound()  
+
   else:
     message = "Angle: awake "
 
@@ -160,6 +173,7 @@ def eyeIris(image,mesh_points):
 
   if distanceCalculator(rightIrisMid,rightBottom) < irisDistcheck and distanceCalculator(leftIrisMid, leftBottom) < irisDistcheck:
     message1 = "looking down"
+    play_sound()  
   elif distanceCalculator(rightIrisLeft, rightLeft) < irisDistcheckLR and distanceCalculator(leftIrisLeft, leftLeft) < irisDistcheckLR:
     message1 = "looking left"
   elif distanceCalculator(rightIrisRight, rightRight) < irisDistcheckLR and distanceCalculator(leftIrisRight, leftRight) < irisDistcheckLR:
@@ -174,7 +188,12 @@ def eyeIris(image,mesh_points):
 
 
 
+
 #this function takes the x and y cordinates of 2 points and calculates the distance between them
 def distanceCalculator(point1, point2):
   return ((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2) ** 0.5
 
+
+def play_sound():   
+        sound_thread = threading.Thread(target=playsound, args=("cyber-alarms.mp3",), daemon=True)
+        sound_thread.start()

@@ -3,12 +3,17 @@ import mediapipe as mp
 import math
 import numpy as np
 import time
+import threading
+from playsound import playsound
+
 
 from facelandmarks import get_facemesh_coords
 from facelandmarks import printMesh
 from facelandmarks import eyesClosed
 from facelandmarks import headPitch
 from facelandmarks import eyeIris
+
+
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -27,7 +32,8 @@ drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 cap = cv2.VideoCapture(0)
 
 fps = 0
-frame_count =0
+frame_count = 0
+status = False
 fps_start_time = time.time()
 
 with mp_face_mesh.FaceMesh(
@@ -35,6 +41,7 @@ with mp_face_mesh.FaceMesh(
     refine_landmarks=True,
     min_detection_confidence=0.5,
     min_tracking_confidence=0.5) as face_mesh:
+
   while cap.isOpened():
     success, image = cap.read()
     #increasing the frame counter by 1 as the camera is running
@@ -67,12 +74,14 @@ with mp_face_mesh.FaceMesh(
 
       #prints all the landmarks including points numbered
       #printMesh(image, mesh_points)
-      
-      eyesClosed(image, mesh_points)
-      headPitch(image, mesh_points)
+
+      status = eyesClosed(image, mesh_points)
+      headPitch(image, mesh_points, status)
       eyeIris(image, mesh_points)
       calculate_fps(fps_start_time, frame_count, image)
         
+   
+
       #eyeIris(image,mesh_points)
     # Flip the image horizontally for a selfie-view display.
     cv2.imshow('MediaPipe Face Mesh',image)
