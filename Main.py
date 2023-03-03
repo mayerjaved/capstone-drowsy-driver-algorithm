@@ -3,7 +3,6 @@ import mediapipe as mp
 import math
 import numpy as np
 import time
-import multiprocessing
 from playsound import playsound
 
 

@@ -33,20 +33,12 @@ def get_facemesh_coords(img, landmark_list):
     return [(int(x * w), int(y * h)) for x, y in xy]
 
 
-
-
-
-
 #This function is used to print the mesh points on the camera, mostly 
 # intended for testing purposes as it slows the program down
 def printMesh(image, mesh_points):
   for i, (x, y) in enumerate(mesh_points):
     cv2.circle(image, (x, y), 2, (255, 255, 0), -1)
     cv2.putText(image, str(i), (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-
-
-
-
 
 
 #this function measures the distance between the top of the eye lid and the bottom of the 
