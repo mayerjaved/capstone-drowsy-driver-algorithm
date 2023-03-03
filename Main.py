@@ -31,6 +31,7 @@ cap = cv2.VideoCapture(0)
 
 fps = 0
 frame_count = 0
+countLag = 0
 status = False
 fps_start_time = time.time()
 
@@ -70,7 +71,7 @@ with mp_face_mesh.FaceMesh(
       #gathers the face mesh points in the form of a tuple array
       mesh_points = get_facemesh_coords(image, face_landmarks)
       eyesClosed(image, mesh_points)
-      eyeIris(image, mesh_points)
+      countLag = eyeIris(image, mesh_points, countLag)
       calculate_fps(fps_start_time, frame_count, image)
         
       

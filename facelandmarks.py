@@ -105,7 +105,7 @@ def eyesClosed(image, mesh_points):
 
 #this function will estimate the position of the user's iris position to determine wether they are
 #looking stright ahead or no
-def eyeIris(image,mesh_points):
+def eyeIris(image,mesh_points, countLag):
   
   rightIrisMid = mesh_points[468]
   rightIrisLeft = mesh_points[471]
@@ -153,19 +153,26 @@ def eyeIris(image,mesh_points):
 
   if distanceCalculator(rightIrisMid,rightBottom) < irisDistcheck and distanceCalculator(leftIrisMid, leftBottom) < irisDistcheck:
     message1 = "looking down"
-    play_sound()  
+    #countLag is a variable used to create a bit of a time to make sure that the user has been looking down for a second before the sound is played 
+    countLag = countLag+1
+    if countLag >= 20:
+      play_sound()  
   elif distanceCalculator(rightIrisLeft, rightLeft) < irisDistcheckLR and distanceCalculator(leftIrisLeft, leftLeft) < irisDistcheckLR:
     message1 = "looking left"
+    countLag = 0
   elif distanceCalculator(rightIrisRight, rightRight) < irisDistcheckLR and distanceCalculator(leftIrisRight, leftRight) < irisDistcheckLR:
     message1 = "looking right" 
+    countLag = 0
   elif distanceCalculator(rightIrisMid, rightTop) < irisDistcheck and distanceCalculator(leftIrisMid, leftTop) < irisDistcheck:
     message1 = "looking up"
   else:
     message1 = "looking straight"
+    countLag = 0
 
 
   cv2.putText(image, message1, (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-
+  print(countLag)
+  return countLag
 
 #this function takes the x and y cordinates of 2 points and calculates the distance between them
 def distanceCalculator(point1, point2):
