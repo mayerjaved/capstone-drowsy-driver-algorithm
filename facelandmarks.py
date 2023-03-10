@@ -141,8 +141,8 @@ def eyeIris(image,mesh_points, countLag):
   #cv2.line(image, rightIrisMid, rightTop, (0, 255, 0), thickness=2)
   #cv2.line(image, leftIrisMid, leftTop, (0, 255, 0), thickness=2)
   #bottom
-  #cv2.line(image, leftIrisMid, leftBottom, (0, 255, 0), thickness=2)
-  #cv2.line(image, rightIrisMid, rightBottom, (0, 255, 0), thickness=2)
+  cv2.line(image, leftIrisMid, leftBottom, (0, 255, 0), thickness=2)
+  cv2.line(image, rightIrisMid, rightBottom, (0, 255, 0), thickness=2)
   #left
   #cv2.line(image, rightIrisLeft, rightLeft, (0, 255, 0), thickness=2)
   #cv2.line(image, leftIrisLeft, leftLeft, (0, 255, 0), thickness=2)
@@ -183,5 +183,5 @@ def distanceCalculator(point1, point2):
 def play_sound():   
 #we use playsound in a in a different tread, as using other methods to play sound results in the function making the program wait while the sound finished playing causing a lag in the video
 #Start playing the sound in a new thread
-    sound_thread = threading.Thread(target=playsound, args=("warning2.wav",), daemon=True)
+    sound_thread = threading.Thread(target=playsound, args=("arcade.wav",), daemon=True)
     sound_thread.start()
