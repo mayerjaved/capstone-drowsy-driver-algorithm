@@ -8,7 +8,8 @@ import numpy as np
 from playsound import playsound
 import threading
 import time
-
+import asyncio
+import pygame
 
 
 #these variables are used to adjust the eye closed threshold, higher number is more sensitive, lower number is less sensitive
@@ -18,6 +19,8 @@ irisDistcheck = 7
 irisDistcheckLR = 11
 DrowsyDriver = False
 sound_playing = False
+pygame.mixer.init()
+
 
 #the following code is extracted from
 #https://www.samproell.io/posts/yarppg/yarppg-face-detection-with-mediapipe/
@@ -71,11 +74,11 @@ def eyesClosed(image, mesh_points):
   leftEyeLeft = mesh_points[130]
 
   distC = distanceCalculator(rightEyeRight,leftEyeLeft)
-  #cv2.line(image, rightEyeRight, leftEyeLeft, (0, 255, 0), thickness=2)
+  cv2.line(image, rightEyeRight, leftEyeLeft, (0, 255, 0), thickness=2)
   distA = distanceCalculator(rightEyeRight, nosepoint)
-  #cv2.line(image, rightEyeRight, nosepoint, (0, 255, 0), thickness=2)
+  cv2.line(image, rightEyeRight, nosepoint, (0, 255, 0), thickness=2)
   distB = distanceCalculator(leftEyeLeft, nosepoint)
-  #cv2.line(image, leftEyeLeft, nosepoint, (0, 255, 0), thickness=2)
+  cv2.line(image, leftEyeLeft, nosepoint, (0, 255, 0), thickness=2)
   angleA = ((distA**2)+(distB**2)-(distC**2))/(2*distA*distB)
 
 
@@ -154,9 +157,11 @@ def eyeIris(image,mesh_points, countLag):
   if distanceCalculator(rightIrisMid,rightBottom) < irisDistcheck and distanceCalculator(leftIrisMid, leftBottom) < irisDistcheck:
     message1 = "looking down"
     #countLag is a variable used to create a bit of a time to make sure that the user has been looking down for a second before the sound is played 
-    countLag = countLag+1
-    if countLag >= 20:
-      play_sound()  
+    countLag = countLag + 1
+    if countLag >= 15:
+        play_sound()  
+
+
   elif distanceCalculator(rightIrisLeft, rightLeft) < irisDistcheckLR and distanceCalculator(leftIrisLeft, leftLeft) < irisDistcheckLR:
     message1 = "looking left"
     countLag = 0
@@ -179,9 +184,24 @@ def distanceCalculator(point1, point2):
   return ((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2) ** 0.5
 
 
-#this function is used to play a warning tone in a different thread
-def play_sound():   
-#we use playsound in a in a different tread, as using other methods to play sound results in the function making the program wait while the sound finished playing causing a lag in the video
-#Start playing the sound in a new thread
-    sound_thread = threading.Thread(target=playsound, args=("arcade.wav",), daemon=True)
-    sound_thread.start()
+
+
+#this function plays the sound file
+def play_sound():
+    #we start off by loading the sound file
+    sound_file = pygame.mixer.Sound("retro.wav")
+    #checking to see if a sound is being played currently
+    if not pygame.mixer.get_busy():
+        #we use playsound in a in a different tread, as using other methods to play sound results in the function making the program wait while the sound finished playing causing a lag in the video
+        #Start playing the sound in a new thread
+        sound_thread = threading.Thread(target=sound_file.play, daemon=True)
+        sound_thread.start()
+        #creating a co-routine to stop the sound after a specific time
+        asyncio.ensure_future(stop_sound(sound_file))
+
+
+#defining an async co-routine to work with the play_sound funciton
+async def stop_sound(sound):
+    #the await can be set to the duration of the sound clip
+    await asyncio.sleep(1)
+    sound.stop()

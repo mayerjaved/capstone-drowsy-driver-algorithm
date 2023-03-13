@@ -73,6 +73,7 @@ def image_processing(queue):
                     face_landmarks = results.multi_face_landmarks[0]
                     mesh_points = get_facemesh_coords(image, face_landmarks)
                     eyesClosed(image, mesh_points)
+                    #add code here
                     countLag = eyeIris(image, mesh_points, countLag)
                     calculate_fps(fps_start_time, frame_count, image)
                 cv2.imshow('MediaPipe Face Mesh', image)
@@ -85,7 +86,7 @@ def image_processing(queue):
 #image_processing in seperate processes to implement multiprocessing and improve
 #program performance
 if __name__ == '__main__':
-    queue = mp2.Queue(maxsize=30)
+    queue = mp2.Queue(maxsize=4)
     p1 = mp2.Process(target=camera_capture, args=(queue,))
     p2 = mp2.Process(target=image_processing, args=(queue,))
     p1.start()
