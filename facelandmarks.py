@@ -74,11 +74,11 @@ def eyesClosed(image, mesh_points):
   leftEyeLeft = mesh_points[130]
 
   distC = distanceCalculator(rightEyeRight,leftEyeLeft)
-  cv2.line(image, rightEyeRight, leftEyeLeft, (0, 255, 0), thickness=2)
+  #cv2.line(image, rightEyeRight, leftEyeLeft, (0, 255, 0), thickness=2)
   distA = distanceCalculator(rightEyeRight, nosepoint)
-  cv2.line(image, rightEyeRight, nosepoint, (0, 255, 0), thickness=2)
+  #cv2.line(image, rightEyeRight, nosepoint, (0, 255, 0), thickness=2)
   distB = distanceCalculator(leftEyeLeft, nosepoint)
-  cv2.line(image, leftEyeLeft, nosepoint, (0, 255, 0), thickness=2)
+  #cv2.line(image, leftEyeLeft, nosepoint, (0, 255, 0), thickness=2)
   angleA = ((distA**2)+(distB**2)-(distC**2))/(2*distA*distB)
 
 
@@ -141,17 +141,17 @@ def eyeIris(image,mesh_points, countLag):
 
   #we have a few line drawings for testing to make sure the right points from the 
   #top
-  #cv2.line(image, rightIrisMid, rightTop, (0, 255, 0), thickness=2)
-  #cv2.line(image, leftIrisMid, leftTop, (0, 255, 0), thickness=2)
+  cv2.line(image, rightIrisMid, rightTop, (0, 255, 0), thickness=2)
+  cv2.line(image, leftIrisMid, leftTop, (0, 255, 0), thickness=2)
   #bottom
   cv2.line(image, leftIrisMid, leftBottom, (0, 255, 0), thickness=2)
   cv2.line(image, rightIrisMid, rightBottom, (0, 255, 0), thickness=2)
   #left
-  #cv2.line(image, rightIrisLeft, rightLeft, (0, 255, 0), thickness=2)
-  #cv2.line(image, leftIrisLeft, leftLeft, (0, 255, 0), thickness=2)
+  cv2.line(image, rightIrisLeft, rightLeft, (0, 255, 0), thickness=2)
+  cv2.line(image, leftIrisLeft, leftLeft, (0, 255, 0), thickness=2)
   #right
-  #cv2.line(image, leftIrisRight, leftRight, (0, 255, 0), thickness=2)
-  #cv2.line(image, rightIrisRight, rightRight, (0, 255, 0), thickness=2)
+  cv2.line(image, leftIrisRight, leftRight, (0, 255, 0), thickness=2)
+  cv2.line(image, rightIrisRight, rightRight, (0, 255, 0), thickness=2)
  
 
   if distanceCalculator(rightIrisMid,rightBottom) < irisDistcheck and distanceCalculator(leftIrisMid, leftBottom) < irisDistcheck:
@@ -186,10 +186,11 @@ def distanceCalculator(point1, point2):
 
 
 
+
 #this function plays the sound file
 def play_sound():
     #we start off by loading the sound file
-    sound_file = pygame.mixer.Sound("retro.wav")
+    sound_file = pygame.mixer.Sound("alarm_short.mp3")
     #checking to see if a sound is being played currently
     if not pygame.mixer.get_busy():
         #we use playsound in a in a different tread, as using other methods to play sound results in the function making the program wait while the sound finished playing causing a lag in the video
@@ -203,5 +204,9 @@ def play_sound():
 #defining an async co-routine to work with the play_sound funciton
 async def stop_sound(sound):
     #the await can be set to the duration of the sound clip
-    await asyncio.sleep(1)
+    await asyncio.sleep(0)
     sound.stop()
+
+
+
+

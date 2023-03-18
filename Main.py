@@ -11,7 +11,6 @@ from facelandmarks import printMesh
 from facelandmarks import eyesClosed
 from facelandmarks import eyeIris
 
-
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
@@ -73,9 +72,9 @@ def image_processing(queue):
                     face_landmarks = results.multi_face_landmarks[0]
                     mesh_points = get_facemesh_coords(image, face_landmarks)
                     eyesClosed(image, mesh_points)
-                    #add code here
                     countLag = eyeIris(image, mesh_points, countLag)
                     calculate_fps(fps_start_time, frame_count, image)
+                    #eye_direction(image,mesh_points)
                 cv2.imshow('MediaPipe Face Mesh', image)
                 if cv2.waitKey(5) & 0xFF == 27:
                     break
@@ -89,6 +88,7 @@ if __name__ == '__main__':
     queue = mp2.Queue(maxsize=4)
     p1 = mp2.Process(target=camera_capture, args=(queue,))
     p2 = mp2.Process(target=image_processing, args=(queue,))
+    
     p1.start()
     p2.start()
     p1.join()
