@@ -6,7 +6,12 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
 import numpy as np
 from playsound import playsound
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
+import threading
+import time
+import asyncio
+import pygame
+
 
 
 #these variables are used to adjust the eye closed threshold, higher number is more sensitive, lower number is less sensitive
@@ -216,4 +221,35 @@ def steering_check(image):
         cv2.putText(image, 'Not holding steering :(', (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
     #GPIO.cleanup()
+
+
+
+
+
+
+
+#still need the following functions for testing on the laptop:
+
+#this function plays the sound file
+def play_sound():
+    #we start off by loading the sound file
+    sound_file = pygame.mixer.Sound("alarm_short.mp3")
+    #checking to see if a sound is being played currently
+    if not pygame.mixer.get_busy():
+        #we use playsound in a in a different tread, as using other methods to play sound results in the function making the program wait while the sound finished playing causing a lag in the video
+        #Start playing the sound in a new thread
+        sound_thread = threading.Thread(target=sound_file.play, daemon=True)
+        sound_thread.start()
+        #creating a co-routine to stop the sound after a specific time
+        asyncio.ensure_future(stop_sound(sound_file))
+
+
+#defining an async co-routine to work with the play_sound funciton
+async def stop_sound(sound):
+    #the await can be set to the duration of the sound clip
+    await asyncio.sleep(0)
+    sound.stop()
+
+
+
 
