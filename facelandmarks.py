@@ -6,10 +6,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
 import numpy as np
 from playsound import playsound
-import threading
-import time
-import asyncio
-import pygame
+import RPi.GPIO as GPIO
 
 
 #these variables are used to adjust the eye closed threshold, higher number is more sensitive, lower number is less sensitive
@@ -19,7 +16,6 @@ irisDistcheck = 7
 irisDistcheckLR = 11
 DrowsyDriver = False
 sound_playing = False
-pygame.mixer.init()
 
 
 #the following code is extracted from
@@ -97,10 +93,14 @@ def eyesClosed(image, mesh_points):
   if angleC < headAnglecheck and (abs(angleA - angleB) < 40):
     message = "Angle: drowsy "
     if status:
-       play_sound()  
+       DrowsyDriver = True
+       play_sound(DrowsyDriver)  
 
   else:
     message = "Angle: awake "
+    DrowsyDriver = False
+    play_sound(DrowsyDriver)  
+
 
   #message += "bottom: " + str(angleC) + " Left:"+ str(angleA) + " Right: " + str(angleB)
   cv2.putText(image, message, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
@@ -141,25 +141,26 @@ def eyeIris(image,mesh_points, countLag):
 
   #we have a few line drawings for testing to make sure the right points from the 
   #top
-  cv2.line(image, rightIrisMid, rightTop, (0, 255, 0), thickness=2)
-  cv2.line(image, leftIrisMid, leftTop, (0, 255, 0), thickness=2)
+  #cv2.line(image, rightIrisMid, rightTop, (0, 255, 0), thickness=2)
+  #cv2.line(image, leftIrisMid, leftTop, (0, 255, 0), thickness=2)
   #bottom
-  cv2.line(image, leftIrisMid, leftBottom, (0, 255, 0), thickness=2)
-  cv2.line(image, rightIrisMid, rightBottom, (0, 255, 0), thickness=2)
+  #cv2.line(image, leftIrisMid, leftBottom, (0, 255, 0), thickness=2)
+  #cv2.line(image, rightIrisMid, rightBottom, (0, 255, 0), thickness=2)
   #left
-  cv2.line(image, rightIrisLeft, rightLeft, (0, 255, 0), thickness=2)
-  cv2.line(image, leftIrisLeft, leftLeft, (0, 255, 0), thickness=2)
+  #cv2.line(image, rightIrisLeft, rightLeft, (0, 255, 0), thickness=2)
+  #cv2.line(image, leftIrisLeft, leftLeft, (0, 255, 0), thickness=2)
   #right
-  cv2.line(image, leftIrisRight, leftRight, (0, 255, 0), thickness=2)
-  cv2.line(image, rightIrisRight, rightRight, (0, 255, 0), thickness=2)
+  #cv2.line(image, leftIrisRight, leftRight, (0, 255, 0), thickness=2)
+  #cv2.line(image, rightIrisRight, rightRight, (0, 255, 0), thickness=2)
  
 
   if distanceCalculator(rightIrisMid,rightBottom) < irisDistcheck and distanceCalculator(leftIrisMid, leftBottom) < irisDistcheck:
     message1 = "looking down"
     #countLag is a variable used to create a bit of a time to make sure that the user has been looking down for a second before the sound is played 
     countLag = countLag + 1
-    if countLag >= 15:
-        play_sound()  
+    if countLag >= 3:
+        DrowsyDriver = True
+        play_sound(DrowsyDriver)  
 
 
   elif distanceCalculator(rightIrisLeft, rightLeft) < irisDistcheckLR and distanceCalculator(leftIrisLeft, leftLeft) < irisDistcheckLR:
@@ -173,6 +174,8 @@ def eyeIris(image,mesh_points, countLag):
   else:
     message1 = "looking straight"
     countLag = 0
+    DrowsyDriver = False
+    play_sound(DrowsyDriver)  
 
 
   cv2.putText(image, message1, (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
@@ -187,26 +190,30 @@ def distanceCalculator(point1, point2):
 
 
 
-#this function plays the sound file
-def play_sound():
-    #we start off by loading the sound file
-    sound_file = pygame.mixer.Sound("alarm_short.mp3")
-    #checking to see if a sound is being played currently
-    if not pygame.mixer.get_busy():
-        #we use playsound in a in a different tread, as using other methods to play sound results in the function making the program wait while the sound finished playing causing a lag in the video
-        #Start playing the sound in a new thread
-        sound_thread = threading.Thread(target=sound_file.play, daemon=True)
-        sound_thread.start()
-        #creating a co-routine to stop the sound after a specific time
-        asyncio.ensure_future(stop_sound(sound_file))
-
-
-#defining an async co-routine to work with the play_sound funciton
-async def stop_sound(sound):
-    #the await can be set to the duration of the sound clip
-    await asyncio.sleep(0)
-    sound.stop()
+def play_sound(DrowsyDriver):
+    pin_number = 23
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(pin_number, GPIO.OUT)
+    if DrowsyDriver:
+        GPIO.output(pin_number, GPIO.LOW)
+        print('playing sound')
+    else:
+        GPIO.output(pin_number, GPIO.HIGH)
+        print('sound off')
+    #GPIO.cleanup()
 
 
 
+def steering_check(image):
+    GPIO.setmode(GPIO.BCM)
+    pin_number = 22
+    GPIO.setup(pin_number, GPIO.IN)
+    input_value = GPIO.input(pin_number)
+    # Print the value
+    if not  input_value:
+        cv2.putText(image, 'Holding steering :)', (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+    else:
+        cv2.putText(image, 'Not holding steering :(', (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+    #GPIO.cleanup()
 

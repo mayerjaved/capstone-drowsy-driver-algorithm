@@ -43,6 +43,8 @@ def camera_capture(queue):
 
 
 
+
+
 #the image_processing function reads the captures frames and processes them. It will capture the landmarks using the mediapipe's library
 #We also have other functions added here to print the face landmarks for testing, an FPS calculator to measure performance, eyesClosed function
 #to determine if the user has their eyes closed and their head pitch angle, and an eyeIris function to determine which way the user is looking.
