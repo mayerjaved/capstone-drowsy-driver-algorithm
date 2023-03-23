@@ -6,14 +6,10 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
 import numpy as np
 from playsound import playsound
-#import RPi.GPIO as GPIO
-import threading
-import time
-import asyncio
-import pygame
+import RPi.GPIO as GPIO
 
 
-pygame.mixer.init()
+
 #these variables are used to adjust the eye closed threshold, higher number is more sensitive, lower number is less sensitive
 eyeDistcheck = 10
 headAnglecheck = 90
@@ -106,10 +102,11 @@ def faceInCenter(image, mesh_points):
   elif angleC < headAnglecheck and (abs(angleA - angleB) < 40):
     message1 = "Head angle: drowsy "
     DrowsyDriver = True
-    playSound()  
+    playSound(DrowsyDriver)
   else:
     message1 = "Head angle: awake "
     DrowsyDriver = False
+    playSound(DrowsyDriver)
   #message += "bottom: " + str(angleC) + " Left:"+ str(angleA) + " Right: " + str(angleB)
   cv2.putText(image, message1, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
   return True
@@ -137,14 +134,15 @@ def eyesClosed(image, mesh_points, countLagEyes):
     status = True
     countLagEyes = countLagEyes + 1
     if countLagEyes >= 7:
-        DrowsyDriver = True
-        playSound()  
-        message2 = "Eyes: closed"
-    
+      DrowsyDriver = True
+      playSound(DrowsyDriver)
+      message2 = "Eyes: closed"
   else:
-    status = False
-    message2 = "Eyes: open"    
-    countLagEyes = 0
+      DrowsyDriver = True
+      message2 = "Eyes: open"   
+      playSound(DrowsyDriver)
+      countLagEyes = 0
+
   cv2.putText(image, message2, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
   return countLagEyes
@@ -196,7 +194,7 @@ def eyeIris(image,mesh_points, countLag):
     countLag = countLag + 1
     if countLag >= 7:
       DrowsyDriver = True
-      playSound() 
+      playSound(DrowsyDriver)
   elif ((leftRight[1]+leftLeft[1])/2) > leftIrisMid[1] and angleLeft < irisAngleBottom and ((rightRight[1]+rightLeft[1])/2) > rightIrisMid[1] and angleRight < irisAngleBottom:
     message3 = "looking up "
     #countLag is a variable used to create a bit of a time to make sure that the user has been looking down for a second before the sound is played 
@@ -209,6 +207,8 @@ def eyeIris(image,mesh_points, countLag):
     message3 = "looking straight "
     countLag = 0
     DrowsyDriver = False
+    playSound(DrowsyDriver)
+
    
 
   #left
@@ -220,26 +220,7 @@ def eyeIris(image,mesh_points, countLag):
   #Showing the angles on screen for testing
   #message3 += "left: " + str(angleLeft) + " right: " + str(angleRight) 
   cv2.putText(image, message3, (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-
   return countLag
-
-'''
-  if distanceCalculator(rightIrisMid,rightBottom) < irisDistcheck and distanceCalculator(leftIrisMid, leftBottom) < irisDistcheck:
-    message1 = "looking down"
-    #countLag is a variable used to create a bit of a time to make sure that the user has been looking down for a second before the sound is played 
-    countLag = countLag + 1
-    if countLag >= 7:
-        DrowsyDriver = True
-        playSound()  
-  else:
-    message1 = "looking straight"
-    countLag = 0
-    DrowsyDriver = False
-
-  cv2.putText(image, message1, (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-  print(countLag)
-  '''
-
 
 
 
@@ -249,7 +230,6 @@ def distanceCalculator(point1, point2):
 
 
 
-'''
 
 def playSound(DrowsyDriver):
     pin_number = 23
@@ -277,35 +257,6 @@ def steeringCheck(image):
         cv2.putText(image, 'Not holding steering :(', (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
     #GPIO.cleanup()
-
-'''
-
-
-
-
-
-#still need the following functions for testing on the laptop:
-
-#this function plays the sound file
-def playSound():
-    #we start off by loading the sound file
-    sound_file = pygame.mixer.Sound("alarm_short.mp3")
-    #checking to see if a sound is being played currently
-    if not pygame.mixer.get_busy():
-        #we use playsound in a in a different tread, as using other methods to play sound results in the function making the program wait while the sound finished playing causing a lag in the video
-        #Start playing the sound in a new thread
-        sound_thread = threading.Thread(target=sound_file.play, daemon=True)
-        sound_thread.start()
-        #creating a co-routine to stop the sound after a specific time
-        asyncio.ensure_future(stopSound(sound_file))
-
-
-#defining an async co-routine to work with the playSound funciton
-async def stopSound(sound):
-    #the await can be set to the duration of the sound clip
-    await asyncio.sleep(0)
-    sound.stop()
-
 
 
 

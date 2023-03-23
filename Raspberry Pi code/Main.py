@@ -11,6 +11,7 @@ from facelandmarks import printMesh
 from facelandmarks import eyesClosed
 from facelandmarks import eyeIris
 from facelandmarks import faceInCenter
+from facelandmarks import steeringCheck
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -80,6 +81,7 @@ def imageProcessing(queue):
                         countLagEyes = eyesClosed(image, mesh_points, countLagEyes)
                         countLagIris = eyeIris(image, mesh_points, countLagIris)
                         calculateFPS(fps_start_time, frame_count, image)
+                        steeringCheck(image)
                 cv2.imshow('MediaPipe Face Mesh', image)
                 if cv2.waitKey(5) & 0xFF == 27:
                     break
@@ -98,4 +100,4 @@ if __name__ == '__main__':
     p2.start()
     p1.join()
     p2.join()
-    #GPIO.cleanup()
+    GPIO.cleanup()
