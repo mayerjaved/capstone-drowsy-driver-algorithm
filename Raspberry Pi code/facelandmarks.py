@@ -143,9 +143,7 @@ def eyesClosed(image, mesh_points, countLagEyes):
       message2 = "Eyes: open"   
       playSound(DrowsyDriver)
       countLagEyes = 0
-
   cv2.putText(image, message2, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-
   return countLagEyes
 
 def eyeIris(image,mesh_points, countLag):
@@ -236,7 +234,8 @@ def distanceCalculator(point1, point2):
 
 
 
-
+#The playSound() function passed a 3.3v pulse to the #23 GPIO pin basically triggering 
+# the 2n7000 mosfet and turning on the analog speaker
 def playSound(DrowsyDriver):
     pin_number = 23
     GPIO.setmode(GPIO.BCM)
@@ -250,7 +249,8 @@ def playSound(DrowsyDriver):
     #GPIO.cleanup()
 
 
-
+#The steeringCheck() function continuously reads the input of thn GPIO pin 16. 
+# This pin is in the pull up resistor mode and if pulsed to ground is know that the user is holding the steering wheel
 def steeringCheck(image):
     GPIO.setmode(GPIO.BCM)
     pin_number = 16
