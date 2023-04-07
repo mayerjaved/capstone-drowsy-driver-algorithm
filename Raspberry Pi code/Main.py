@@ -1,7 +1,3 @@
-#This version of the algoritm is made to work on the Raspberry Pi as it contains the GPIO inputs and outputs 
-#for the steering circuit and analog speaker. The core algorithm however is the same that is made
-#for the laptop
-
 import cv2
 import mediapipe as mp
 import math
@@ -15,6 +11,7 @@ from facelandmarks import printMesh
 from facelandmarks import eyesClosed
 from facelandmarks import eyeIris
 from facelandmarks import faceInCenter
+from facelandmarks import steeringCheck
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -41,7 +38,7 @@ def cameraCapture(queue):
             print("Ignoring empty camera frame.")
             continue
         #resizes the camera frames to adjust for different machines
-        image = cv2.resize(image, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
+        image = cv2.resize(image, None, fx=1.6, fy=1.6, interpolation=cv2.INTER_CUBIC)
         #the frames go into a queue for processing
         queue.put(image)
     cap.release()
@@ -84,6 +81,7 @@ def imageProcessing(queue):
                         countLagEyes = eyesClosed(image, mesh_points, countLagEyes)
                         countLagIris = eyeIris(image, mesh_points, countLagIris)
                         calculateFPS(fps_start_time, frame_count, image)
+                        #steeringCheck(image)
                 cv2.imshow('MediaPipe Face Mesh', image)
                 if cv2.waitKey(5) & 0xFF == 27:
                     break
@@ -102,4 +100,4 @@ if __name__ == '__main__':
     p2.start()
     p1.join()
     p2.join()
-    #GPIO.cleanup()
+    GPIO.cleanup()
