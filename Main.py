@@ -37,7 +37,7 @@ def cameraCapture(queue):
             print("Ignoring empty camera frame.")
             continue
         #resizes the camera frames to adjust for different machines
-        image = cv2.resize(image, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
+        image = cv2.resize(image, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
         #the frames go into a queue for processing
         queue.put(image)
     cap.release()

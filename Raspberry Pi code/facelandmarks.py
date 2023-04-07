@@ -7,15 +7,16 @@ mp_face_mesh = mp.solutions.face_mesh
 import numpy as np
 from playsound import playsound
 import RPi.GPIO as GPIO
+import time
 
 
 
 #these variables are used to adjust the eye closed threshold, higher number is more sensitive, lower number is less sensitive
 eyeDistcheck = 10
-headAnglecheck = 90
+headAnglecheck = 7
 irisDistcheck = 7
 irisDistcheckLR = 9
-irisAngleBottom = 171
+irisAngleBottom = 168
 DrowsyDriver = False
 sound_playing = False
 message1 = ''
@@ -80,12 +81,13 @@ def faceInCenter(image, mesh_points):
   angleB = ((distC**2)+(distA**2)-(distB**2))/(2*distC*distA)
   angleC = ((distA**2)+(distB**2)-(distC**2))/(2*distA*distB)
 
-
   #runs cos inverse, converts the value to degree and sets 2 decimal places
-  angleA = round(math.degrees(math.acos(angleA)) , 1)
-  angleB = round(math.degrees(math.acos(angleB)) , 1)
-  angleC = round(math.degrees(math.acos(angleC)) , 1)
+  angleA = round(angleA * (180 / 3.14),1)
+  angleB = round(angleB * (180 / 3.14),1)
+  angleC = (round(angleC * (180 / 3.14),1))
+  #print(angleA, ' ',angleB, ' ', angleC)
 
+  
   #this condition will take place when the user's face not in the center of the camera or the face is tilted significantly left or right
   if (distanceFromX > distThresX and distanceFromY > distThresY) or (abs(angleA - angleB) > 40):
     message1 = "Please make sure to directly face the camera to continue"
@@ -99,15 +101,13 @@ def faceInCenter(image, mesh_points):
     cv2.rectangle(image, (rect_left, rect_top), (rect_right, rect_bottom), (255, 0, 0), 2)
   # draw the rectangle
     return False
-  elif angleC < headAnglecheck and (abs(angleA - angleB) < 40):
+  elif angleC > headAnglecheck and (abs(angleA - angleB) < 40):
     message1 = "Head angle: drowsy "
-    DrowsyDriver = True
-    playSound(DrowsyDriver)
+    
   else:
     message1 = "Head angle: awake "
-    DrowsyDriver = False
-    playSound(DrowsyDriver)
-  #message += "bottom: " + str(angleC) + " Left:"+ str(angleA) + " Right: " + str(angleB)
+    
+  #message1 += "bottom: " + str(angleC) + " Left:"+ str(angleA) + " Right: " + str(angleB)
   cv2.putText(image, message1, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
   return True
   
@@ -134,11 +134,12 @@ def eyesClosed(image, mesh_points, countLagEyes):
     status = True
     countLagEyes = countLagEyes + 1
     if countLagEyes >= 7:
+      print(countLagEyes)
       DrowsyDriver = True
       playSound(DrowsyDriver)
       message2 = "Eyes: closed"
   else:
-      DrowsyDriver = True
+      DrowsyDriver = False
       message2 = "Eyes: open"   
       playSound(DrowsyDriver)
       countLagEyes = 0
@@ -164,8 +165,8 @@ def eyeIris(image,mesh_points, countLag):
   #cv2.line(image, rightIrisMid, rightLeft, (0, 255, 0), thickness=2)
 
   angleRight = ((distLeft1**2)+(distRight1**2)-(distTotal1**2))/(2*distLeft1*distRight1)
-  if angleRight > -1 or angleRight < 1:
-    angleRight = round(math.degrees(math.acos(angleRight)) , 1)
+  angleRight = round(angleRight * (180 / 3.14),1)
+
   leftIrisLeft = mesh_points[476]
   leftIrisRight = mesh_points[474]
   leftIrisMid = mesh_points[473]
@@ -182,9 +183,8 @@ def eyeIris(image,mesh_points, countLag):
 
 
   #finds the angle
-  angleLeft = ((distLeft**2)+(distRight**2)-(distTotal**2))/(2*distLeft*distRight)
-  if angleLeft > -1 or angleLeft < 1:
-    angleLeft = round(math.degrees(math.acos(angleLeft)), 1)
+  angleLeft = (((distLeft**2)+(distRight**2))-(distTotal**2))/(2*distLeft*distRight)
+  angleLeft = round(angleLeft * (180 / 3.14),1)
 
 
   #making sure that the midIris is below the left and right part of the eye, which means that the user is looking down
@@ -192,17 +192,23 @@ def eyeIris(image,mesh_points, countLag):
     message3 = "looking down "
     #countLag is a variable used to create a bit of a time to make sure that the user has been looking down for a second before the sound is played 
     countLag = countLag + 1
-    if countLag >= 7:
+    if countLag >= 10:
       DrowsyDriver = True
       playSound(DrowsyDriver)
   elif ((leftRight[1]+leftLeft[1])/2) > leftIrisMid[1] and angleLeft < irisAngleBottom and ((rightRight[1]+rightLeft[1])/2) > rightIrisMid[1] and angleRight < irisAngleBottom:
     message3 = "looking up "
+    countLag = 0
+
     #countLag is a variable used to create a bit of a time to make sure that the user has been looking down for a second before the sound is played 
   #if the mid iris point is above the eye level it indicates that the user is looking up 
   elif distanceCalculator(rightIrisLeft, rightLeft1) < irisDistcheckLR and distanceCalculator(leftIrisLeft, leftLeft) < irisDistcheckLR:
     message3 = "looking left"
+    countLag = 0
+
   elif distanceCalculator(rightIrisRight, rightRight1) < irisDistcheckLR and distanceCalculator(leftIrisRight, leftRight) < irisDistcheckLR:
-    message3 = "looking right" 
+    message3 = "looking right"
+    countLag = 0
+
   else:
     message3 = "looking straight "
     countLag = 0
@@ -247,16 +253,16 @@ def playSound(DrowsyDriver):
 
 def steeringCheck(image):
     GPIO.setmode(GPIO.BCM)
-    pin_number = 22
-    GPIO.setup(pin_number, GPIO.IN)
-    input_value = GPIO.input(pin_number)
+    pin_number = 16
+    GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    input_value = GPIO.input(16)
     # Print the value
     if not  input_value:
         cv2.putText(image, 'Holding steering :)', (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
     else:
         cv2.putText(image, 'Not holding steering :(', (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-    #GPIO.cleanup()
+    GPIO.cleanup()
 
 
 

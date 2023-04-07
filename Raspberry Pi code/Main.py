@@ -38,7 +38,7 @@ def cameraCapture(queue):
             print("Ignoring empty camera frame.")
             continue
         #resizes the camera frames to adjust for different machines
-        image = cv2.resize(image, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
+        image = cv2.resize(image, None, fx=1.6, fy=1.6, interpolation=cv2.INTER_CUBIC)
         #the frames go into a queue for processing
         queue.put(image)
     cap.release()
@@ -81,7 +81,7 @@ def imageProcessing(queue):
                         countLagEyes = eyesClosed(image, mesh_points, countLagEyes)
                         countLagIris = eyeIris(image, mesh_points, countLagIris)
                         calculateFPS(fps_start_time, frame_count, image)
-                        steeringCheck(image)
+                        #steeringCheck(image)
                 cv2.imshow('MediaPipe Face Mesh', image)
                 if cv2.waitKey(5) & 0xFF == 27:
                     break

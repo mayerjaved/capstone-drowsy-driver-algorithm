@@ -126,10 +126,12 @@ def eyesClosed(image, mesh_points, countLagEyes):
   rightTop = mesh_points[159]
   rightBottom = mesh_points[145]
   distRight = distanceCalculator(rightTop,rightBottom)
+  #cv2.line(image, rightTop,rightBottom, (0, 255, 0), thickness=2)
 
   leftTop = mesh_points[386]
   leftBottom = mesh_points[374]
   distLeft = distanceCalculator(leftTop,leftBottom)
+  #cv2.line(image, leftTop,leftBottom, (0, 255, 0), thickness=2)
 
   distRatio = (distRight + distLeft)/2
 
