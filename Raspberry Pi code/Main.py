@@ -1,3 +1,10 @@
+#Mayer Javed
+#Dwosy Driver Group 7 code base
+
+#This version of the algoritm is made to work on the Raspberry Pi as it contains the GPIO inputs and outputs 
+#for the steering circuit and analog speaker. The core algorithm however is the same that is made
+#for the laptop
+
 import cv2
 import mediapipe as mp
 import math
